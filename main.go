@@ -21,9 +21,10 @@ type CommandServer struct {
 
 func New(versionMajor, versionMinor int) *CommandServer {
 	var cmds = map[string]CommandFunc{
-		"exit":         ExitCommand,
-		"command-list": CommandListCommand,
-		"version":      VersionCommand,
+		"exit":    ExitCommand,
+		"quit":    ExitCommand,
+		"help":    HelpCommand,
+		"version": VersionCommand,
 	}
 	return &CommandServer{
 		versionMajor: versionMajor,
@@ -85,11 +86,13 @@ func ExitCommand(c *CommandServer, conn net.Conn, args []string) {
 	conn.Close()
 }
 
+// Add optional single argument: (MINOR|MAJOR)?
 func VersionCommand(c *CommandServer, conn net.Conn, args []string) {
 	conn.Write([]byte(fmt.Sprintf("Version: %d.%d\n", c.versionMajor, c.versionMinor)))
 }
 
-func CommandListCommand(c *CommandServer, conn net.Conn, args []string) {
+func HelpCommand(c *CommandServer, conn net.Conn, args []string) {
+	conn.Write([]byte("The following commands are available\n"))
 	mk := make([]string, len(c.commands))
 	i := 0
 	for k, _ := range c.commands {
@@ -98,7 +101,7 @@ func CommandListCommand(c *CommandServer, conn net.Conn, args []string) {
 	}
 	sort.Strings(mk)
 	for _, commandName := range mk {
-		conn.Write([]byte(fmt.Sprintf("%s\n", commandName)))
+		conn.Write([]byte(fmt.Sprintf("\t%s\n", commandName)))
 	}
 }
 
