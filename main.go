@@ -88,7 +88,12 @@ func ExitCommand(c *CommandServer, conn net.Conn, args []string) {
 
 // Add optional single argument: (MINOR|MAJOR)?
 func VersionCommand(c *CommandServer, conn net.Conn, args []string) {
-	conn.Write([]byte(fmt.Sprintf("Version: %d.%d\n", c.versionMajor, c.versionMinor)))
+	msg := fmt.Sprintf("---\r\nversion: %d.%d\r\n", c.versionMajor, c.versionMinor)
+	_, err := conn.Write([]byte(fmt.Sprintf("OK %d\r\n%s", len(msg), msg)))
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return
+	}
 }
 
 func HelpCommand(c *CommandServer, conn net.Conn, args []string) {
@@ -100,13 +105,16 @@ func HelpCommand(c *CommandServer, conn net.Conn, args []string) {
 		i++
 	}
 	sort.Strings(mk)
-	for _, commandName := range mk {
-		conn.Write([]byte(fmt.Sprintf("\t%s\n", commandName)))
+	msg := fmt.Sprintf("---\r\n%s\r\n", strings.Join(mk, "\r\n"))
+	_, err := conn.Write([]byte(fmt.Sprintf("OK %d\r\n%s", len(msg), msg)))
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		return
 	}
 }
 
 func UnknownCommand(c *CommandServer, conn net.Conn, args []string) {
-	_, err := conn.Write([]byte(fmt.Sprintf("Unknown command: %s. Type 'command-list' for a list of commands.\n", args[0])))
+	_, err := conn.Write([]byte("UNKNOWN_COMMAND\r\n"))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 	}
