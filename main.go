@@ -21,7 +21,6 @@ type CommandServer struct {
 
 func New(versionMajor, versionMinor int) *CommandServer {
 	var cmds = map[string]CommandFunc{
-		"exit":    ExitCommand,
 		"quit":    ExitCommand,
 		"help":    HelpCommand,
 		"version": VersionCommand,
@@ -88,7 +87,7 @@ func ExitCommand(c *CommandServer, conn net.Conn, args []string) {
 
 // Add optional single argument: (MINOR|MAJOR)?
 func VersionCommand(c *CommandServer, conn net.Conn, args []string) {
-	msg := fmt.Sprintf("---\r\nversion: %d.%d\r\n", c.versionMajor, c.versionMinor)
+	msg := fmt.Sprintf("---\r\nversion: %d.%d\r\n\r\n", c.versionMajor, c.versionMinor)
 	_, err := conn.Write([]byte(fmt.Sprintf("OK %d\r\n%s", len(msg), msg)))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
@@ -97,7 +96,6 @@ func VersionCommand(c *CommandServer, conn net.Conn, args []string) {
 }
 
 func HelpCommand(c *CommandServer, conn net.Conn, args []string) {
-	conn.Write([]byte("The following commands are available\n"))
 	mk := make([]string, len(c.commands))
 	i := 0
 	for k, _ := range c.commands {
@@ -105,7 +103,7 @@ func HelpCommand(c *CommandServer, conn net.Conn, args []string) {
 		i++
 	}
 	sort.Strings(mk)
-	msg := fmt.Sprintf("---\r\n%s\r\n", strings.Join(mk, "\r\n"))
+	msg := fmt.Sprintf("---\r\n%s\r\n\r\n", strings.Join(mk, "\r\n"))
 	_, err := conn.Write([]byte(fmt.Sprintf("OK %d\r\n%s", len(msg), msg)))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
