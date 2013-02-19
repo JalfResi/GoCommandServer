@@ -112,7 +112,7 @@ func HelpCommand(c *CommandServer, conn net.Conn, args []string) {
 }
 
 func UnknownCommand(c *CommandServer, conn net.Conn, args []string) {
-	_, err := conn.Write([]byte("UNKNOWN_COMMAND\r\n"))
+	_, err := conn.Write([]byte("UNKNOWN_COMMAND\r\n" + strings.Join(args, ", ") + "\r\n"))
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 	}
